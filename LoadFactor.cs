@@ -15,6 +15,8 @@ namespace Project
             SetContentView(Resource.Layout.Graph);
             string lip = Intent.GetStringExtra("Datafromtabs") ?? "Data not available";
 
+            //TEST
+
             int LoadFactorD = Convert.ToInt16(NetHttp.FetchWaitAsync(App.Instance.GetUrl("loadfactorday")).Result);
             int LoadFactorM = Convert.ToInt16(NetHttp.FetchWaitAsync(App.Instance.GetUrl("loadfactormonth")).Result);
             int LoadFactorY = Convert.ToInt16(NetHttp.FetchWaitAsync(App.Instance.GetUrl("loadfactoryear")).Result);
