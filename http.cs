@@ -1,7 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Net.Http;
-using System.Json;
 using Newtonsoft.Json;
 
 namespace Project

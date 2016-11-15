@@ -1,6 +1,5 @@
 using BarChart;
 using System;
-using Android.Views;
 using Android.App;
 using Android.OS;
 
