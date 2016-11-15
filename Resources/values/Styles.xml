@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+  
+  <style name="Theme.Splash" parent="android:Theme">
+    <item name="android:windowBackground">@drawable/splash</item>
+    <item name="android:colorPrimary">@color/my_blue</item>
+    <item name="android:windowNoTitle">true</item>
+  </style>
+
+  <style name="IPInsertTheme" parent="android:Theme.Material.Light">
+    <item name="android:colorPrimary">@color/my_blue</item>
+    <item name="android:colorAccent">@color/my_purple</item>
+    <item name="android:textColorPrimary">@color/my_white</item>
+    <item name="android:navigationBarColor">@color/my_blue</item>
+   </style>
+
+  <style name="DetailsTheme" parent="android:Theme.Material.Light">
+    <item name="android:colorPrimary">@color/my_blue</item>
+    <item name="android:colorAccent">@color/my_purple</item>
+    <item name="android:windowBackground">@color/my_white</item>
+    <item name="android:textColorPrimary">@color/my_white</item>
+    <item name="android:navigationBarColor">@color/my_blue</item>
+</style>
+
+ <style name="MainTheme" parent="android:Theme.Material.Light">
+    <item name="android:colorPrimary">@color/my_blue</item>    
+    <item name="android:windowBackground">@color/my_white</item>   
+    <item name="android:textColorPrimary">@color/my_white</item>
+    <item name="android:navigationBarColor">@color/my_blue</item>
+   <item name="android:windowDrawsSystemBarBackgrounds">true</item>   
+</style>
+ 
+</resources>

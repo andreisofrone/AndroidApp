@@ -1,0 +1,293 @@
+using AngularJSAuthentication.API;
+using AngularJSAuthentication.API.Entities;
+using AngularJSAuthentication.API.Models;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Linq.Dynamic;
+using System.Data;
+using System.Linq.Expressions;
+
+using System.Data.Linq;
+//using System.Data.Objects;
+
+
+
+
+namespace AngularJSAuthentication.API
+{
+    public class AuthRepository : IDisposable
+    {
+        private AuthContext _ctx;
+
+        private UserManager<IdentityUser> _userManager;
+
+        public AuthRepository()
+        {
+            _ctx = new AuthContext();
+            _userManager = new UserManager<IdentityUser>(new UserStore<IdentityUser>(_ctx));
+        }
+
+        public async Task<IdentityResult> RegisterUser(UserModel userModel)
+        {
+            IdentityUser user = new IdentityUser
+            {
+                UserName = userModel.UserName
+            };
+
+            var result = await _userManager.CreateAsync(user, userModel.Password);
+
+            return result;
+        }
+
+        public async Task<IdentityUser> FindUser(string userName, string password)
+        {
+            IdentityUser user = await _userManager.FindAsync(userName, password);
+
+            return user;
+        }
+
+        public void Dispose()
+        {
+            _ctx.Dispose();
+            _userManager.Dispose();
+
+        }
+
+        public Client FindClient(string Id)
+        {
+            var client = _ctx.Clients.Find(Id);
+
+            return client;
+        }
+
+        public async Task<bool> AddRefreshToken(RefreshToken token)
+        {
+
+            var existingToken = _ctx.RefreshTokens.Where(r => r.Subject == token.Subject && r.ClientId == token.ClientId).SingleOrDefault();
+
+            if (existingToken != null)
+            {
+                var result = await RemoveRefreshToken(existingToken);
+            }
+
+            _ctx.RefreshTokens.Add(token);
+
+            return await _ctx.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> RemoveRefreshToken(string refreshTokenId)
+        {
+            var refreshToken = await _ctx.RefreshTokens.FindAsync(refreshTokenId);
+
+            if (refreshToken != null)
+            {
+                _ctx.RefreshTokens.Remove(refreshToken);
+                return await _ctx.SaveChangesAsync() > 0;
+            }
+
+            return false;
+        }
+
+        public async Task<bool> RemoveRefreshToken(RefreshToken refreshToken)
+        {
+            _ctx.RefreshTokens.Remove(refreshToken);
+            return await _ctx.SaveChangesAsync() > 0;
+        }
+
+        public async Task<RefreshToken> FindRefreshToken(string refreshTokenId)
+        {
+            var refreshToken = await _ctx.RefreshTokens.FindAsync(refreshTokenId);
+
+            return refreshToken;
+        }
+
+        public List<RefreshToken> GetAllRefreshTokens()
+        {
+            return _ctx.RefreshTokens.ToList();
+        }
+
+
+        public double? waitDay()
+        {
+
+
+            var waitavg =
+            from waitTim in _ctx.vwplannedShift
+            group waitTim by new
+            {
+                waitTim.plannedStartInstant.Value.Year,
+                waitTim.plannedStartInstant.Value.Month,
+                waitTim.plannedStartInstant.Value.Day
+            } into waittgroup
+            orderby waittgroup.Key.Year descending, waittgroup.Key.Month descending, waittgroup.Key.Day descending
+            select  waittgroup.Average(r => r.waitTime.Value)  ;
+            var waitavgg = waitavg.ToList();
+            return waitavgg.FirstOrDefault();
+        }
+
+        public double? waitMonth()
+        {
+
+
+            var waitavg =
+            from waitTim in _ctx.vwplannedShift
+            group waitTim by new
+            {
+                waitTim.plannedStartInstant.Value.Year,
+                waitTim.plannedStartInstant.Value.Month,
+                
+            } into waittgroup
+            orderby waittgroup.Key.Year descending, waittgroup.Key.Month descending
+            select waittgroup.Average(r => r.waitTime.Value);
+            var waitavgg = waitavg.ToList();
+            return waitavgg.FirstOrDefault();
+        }
+
+        public double? waitYear()
+        {
+            var waitavg =
+            from waitTim in _ctx.vwplannedShift
+            group waitTim by new
+            {
+                waitTim.plannedStartInstant.Value.Year
+            } into waittgroup
+            orderby waittgroup.Key.Year descending
+            select waittgroup.Average(r => r.waitTime.Value);
+            var waitavgg = waitavg.ToList();
+            return waitavgg.FirstOrDefault();
+        }
+        public decimal? capOverDistanceYear()
+        {
+            var avg =
+            from ps in _ctx.vwplannedShift join ac in _ctx.vwaction on ps.id_shift equals ac.id_shift
+            group ac by new
+            {
+                ac.plannedStartInstant.Value.Year
+            } into waittgroup
+            orderby waittgroup.Key.Year descending
+            select waittgroup.Average(r => ((r.finishCapacityPercentage * r.plannedDistance )/100).Value);
+            var waitavgg = avg.ToList();
+            return waitavgg.FirstOrDefault();
+            decimal aprox = waitavgg.FirstOrDefault();
+            if (aprox >= 100)
+            { aprox = 100; }
+            return aprox;
+        }
+
+        public decimal? capOverDistanceMonth()
+        {
+            var avg =
+            from ps in _ctx.vwplannedShift
+            join ac in _ctx.vwaction on ps.id_shift equals ac.id_shift
+            group ac by new
+            {
+                ac.plannedStartInstant.Value.Year,
+                ac.plannedStartInstant.Value.Month
+            } into waittgroup
+            orderby waittgroup.Key.Year descending, waittgroup.Key.Month descending
+            select waittgroup.Average(r => ((r.finishCapacityPercentage * r.plannedDistance) / 100).Value);
+            var waitavgg = avg.ToList();
+            return waitavgg.FirstOrDefault();
+            decimal aprox = waitavgg.FirstOrDefault();
+            if (aprox >= 100)
+            { aprox = 100; }
+            return aprox;
+        }
+
+        public decimal? capOverDistanceDay()
+        {
+            var avg =
+            from ps in _ctx.vwplannedShift
+            join ac in _ctx.vwaction on ps.id_shift equals ac.id_shift
+            group ac by new
+            {
+                ac.plannedStartInstant.Value.Year,
+                ac.plannedStartInstant.Value.Month,
+                ac.plannedStartInstant.Value.Day
+            } into waittgroup
+            orderby waittgroup.Key.Year descending, waittgroup.Key.Month descending, waittgroup.Key.Day descending
+            select waittgroup.Average(r => ((r.finishCapacityPercentage * r.plannedDistance) / 100).Value);
+            var waitavgg = avg.ToList();
+
+            decimal aprox = waitavgg.FirstOrDefault();
+            if (aprox >= 100)
+            { aprox = 100; }
+            return aprox;
+        }
+
+        public double? LoadFactorYear()
+        {
+            var avg =
+            from ps in _ctx.vwplannedShift
+            join ac in _ctx.vwaction on ps.id_shift equals ac.id_shift
+            where ac.contextName =="travel"
+            group ac by new
+            {
+                ac.plannedStartInstant.Value.Year
+                
+            } into waittgroup
+            orderby waittgroup.Key.Year descending
+            select waittgroup.Average(r => r.finishCapacityPercentage.Value);
+            var waitavgg = avg.ToList();
+            return waitavgg.FirstOrDefault();
+            double aprox = waitavgg.FirstOrDefault();
+            if (aprox >= 100)
+            { aprox = 100; }
+            return aprox;
+        }
+
+        public double? LoadFactorMonth()
+        {
+            var avg =
+            from ps in _ctx.vwplannedShift
+            join ac in _ctx.vwaction on ps.id_shift equals ac.id_shift
+            where ac.contextName == "travel"
+            group ac by new
+            {
+                ac.plannedStartInstant.Value.Year,
+                ac.plannedStartInstant.Value.Month
+
+            } into waittgroup
+            orderby waittgroup.Key.Year descending,waittgroup.Key.Month descending
+            select waittgroup.Average(r => r.finishCapacityPercentage.Value);
+            var waitavgg = avg.ToList();
+            return waitavgg.FirstOrDefault();
+            double aprox = waitavgg.FirstOrDefault();
+            if (aprox >= 100)
+            { aprox = 100; }
+            return aprox;
+        }
+
+        public double? LoadFactorDay()
+        {
+            var avg =
+            from ps in _ctx.vwplannedShift
+            join ac in _ctx.vwaction on ps.id_shift equals ac.id_shift
+            where ac.contextName == "travel"
+            group ac by new
+            {
+                ac.plannedStartInstant.Value.Year,
+                ac.plannedStartInstant.Value.Month,
+                ac.plannedStartInstant.Value.Day
+
+            } into waittgroup
+            orderby waittgroup.Key.Year descending, waittgroup.Key.Month descending,waittgroup.Key.Day
+            select waittgroup.Average(r => r.finishCapacityPercentage.Value);
+            var waitavgg = avg.ToList();
+            return waitavgg.FirstOrDefault();
+            double aprox = waitavgg.FirstOrDefault();
+            if (aprox >= 100)
+            { aprox = 100; }
+            return aprox;
+        }
+
+
+    }
+    
+    }
+
+

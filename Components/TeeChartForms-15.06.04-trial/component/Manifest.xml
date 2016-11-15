@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<component format="1" id="TeeChartForms">
+  <name>TeeChart Charting Library for Xamarin.Forms</name>
+  <publisher>Steema Software</publisher>
+  <publisher-url>http://www.steema.com</publisher-url>
+  <version>15.06.04</version>
+  <summary>Beautiful, pre-configured, highly extensible chart and gauge controls for business, engineering, and scientific data.</summary>
+  <samples>
+    <sample id="TeeChartDemo.PCL">
+      <name>Xamarin.Forms Detailed Sample.</name>
+      <summary>Demonstrates TeeChart on Xamarin.Forms</summary>
+    </sample>
+    <sample id="SampleProject">
+      <name>Xamarin.Forms Basic Sample.</name>
+      <summary>Demonstrates TeeChart on Xamarin.Forms</summary>
+    </sample>
+  </samples>
+</component>
